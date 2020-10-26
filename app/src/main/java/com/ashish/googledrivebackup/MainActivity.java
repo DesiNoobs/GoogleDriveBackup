@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     final int REQUEST_EXTERNAL_STORAGE = 101;
     final int REQUEST_EXTERNAL_VIDEO_STORAGE = 102;
     final int REQUEST_EXTERNAL_DOC_STORAGE = 103;
+    final int REQUEST_EXTERNAL_CONTACT_STORAGE = 104;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,8 +210,46 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        upload_contact.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_EXTERNAL_STORAGE);
+//                    return;
+                } else {
+                    File TEST = new File(Environment.getExternalStorageDirectory(), "CcureBackup");
+                    TEST.mkdir(); // make directory may want to check return value
+                    String path = TEST.getAbsolutePath();
+                    Toast.makeText(MainActivity.this, "Contacts Backup Running" , Toast.LENGTH_SHORT).show();
+                    launchConatctIntent();
+                }
+            }
+        });
 
     }
+
+    private void launchConatctIntent() {
+        String pathnew = "/data/user/0/com.ashish.googledrivebackup/files/userfiles/Contacts.vcf";
+        String mimeNew = "text/x-vcard";
+        String filename = pathnew.substring(pathnew.lastIndexOf("/") + 1);
+        Log.d("test",filename);
+
+        driveServiceHelper1.UploadContact(pathnew, filename, mimeNew)
+                .addOnSuccessListener(new OnSuccessListener<String>() {
+                    @Override
+                    public void onSuccess(String s) {
+                        Toast.makeText(MainActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                e.printStackTrace();
+                Toast.makeText(MainActivity.this, "NotUpload" + e, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+       // String pathnew = "/data/user/0/com.ashish.googledrivebackup/files/userfiles/Contacts.vcf";
 
     private void launchDocIntent() {
 
@@ -314,6 +353,7 @@ public class MainActivity extends AppCompatActivity {
                         String path = fileUtils.getPath(imageUri);
                         ContentResolver cR = this.getContentResolver();
                         String mime = cR.getType(imageUri);
+                        Log.d("path",path);
                         driveServiceHelper1.UploadImage(path, displayName(imageUri), null, mime)
                                 .addOnSuccessListener(new OnSuccessListener<String>() {
                                     @Override
@@ -330,6 +370,27 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 }
+                break;
+
+            case REQUEST_EXTERNAL_CONTACT_STORAGE:
+                    if (requestCode == REQUEST_EXTERNAL_CONTACT_STORAGE && resultCode == RESULT_OK) {
+
+
+                        /*Uri uri = resultData.getData();
+                        ContentResolver cR = this.getContentResolver();
+                        String mimeNew = cR.getType(uri);
+                        String pathnew = fileUtils.getPath(uri);
+                        String path = uri.getPath();
+                        String filename = pathnew.substring(pathnew.lastIndexOf("/") + 1);
+
+                        Log.d("path",mimeNew);
+                        Log.d("path1",pathnew);
+                        Log.d("path2",filename);
+                        Log.d("path3",path);*/
+
+                    }
+
+
                 break;
 
             case REQUEST_EXTERNAL_VIDEO_STORAGE:
@@ -376,6 +437,7 @@ public class MainActivity extends AppCompatActivity {
                         ContentResolver cR = this.getContentResolver();
                         String mime = cR.getType(uri);
                         String path = fileUtils.getPath(uri);
+                        Log.d("path",path);
                         driveServiceHelper1.UploadDoc(path, displayName(uri))
                                 .addOnSuccessListener(new OnSuccessListener<String>() {
                                     @Override
@@ -398,7 +460,7 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, resultData);
     }
 
-    private List<String> getSelectedVideos(int requestCode, Intent data) throws URISyntaxException{
+    private List<String> getSelectedVideos(int requestCode, Intent data) throws URISyntaxException {
 
         List<String> result = new ArrayList<>();
         ClipData clipData = data.getClipData();
@@ -429,6 +491,7 @@ public class MainActivity extends AppCompatActivity {
             String filePath = fileUtils.getPath(videoURI);
             ContentResolver cR = this.getContentResolver();
             String mime = cR.getType(videoURI);
+            Log.d("path",filePath);
             driveServiceHelper1.UploadVideo(filePath, displayName(videoURI))
                     .addOnSuccessListener(new OnSuccessListener<String>() {
                         @Override

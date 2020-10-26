@@ -166,6 +166,29 @@ public class DriveServiceHelper1 {
         });
     }
 
+    public Task<String> UploadContact(final String filepath,final String name,String mime)
+    {
+        return Tasks.call(mExecutor,() -> {
+            File fileMetadata=new File();
+            fileMetadata.setName(name);
+            java.io.File file=new java.io.File(filepath);
+            FileContent mediaContent=new FileContent(mime,file);
+            File myFile=null;
+            try{
+              myFile=mDriveService.files().create(fileMetadata,mediaContent).execute();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            if(myFile==null)
+            {
+                throw new IOException("Null result coming");
+            }
+            return myFile.getId();
+        });
+    }
+
 
 
 
